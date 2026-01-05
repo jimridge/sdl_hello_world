@@ -1,0 +1,156 @@
+#include <SDL3/SDL.h>
+// #include <SDL3/SDL_main.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define global_variable static
+
+// TODO: This is a global variable for now (?)
+global_variable bool Running;
+
+
+void HandleEvent(SDL_Event *event, SDL_Renderer *renderer)
+{
+
+    switch(event->type)
+    {
+        case SDL_EVENT_QUIT:
+        {
+            Running = false;
+            printf("SDL_QUIT\n");
+        } break;
+        case SDL_EVENT_WINDOW_RESIZED:
+        {
+            printf("SDL_EVENT_WINDOW_RESIZED (%d, %d)\n", event->window.data1, event->window.data2);
+        } break;
+        case SDL_EVENT_KEY_DOWN:
+        {
+            printf("Key down: keycode=%d (%s), scancode=%d (%s), mods=0x%x%s\n",
+                       (int)event->key.key,
+                       SDL_GetKeyName(event->key.key),
+                       (int)event->key.scancode,
+                       SDL_GetScancodeName(event->key.scancode),
+                       (unsigned)event->key.mod,
+                       event->key.repeat ? " [repeat]" : "");
+        }
+        case SDL_EVENT_WINDOW_FOCUS_GAINED:
+        {
+            printf("SDL_WINDOWEVENT_FOCUS_GAINED\n");
+        } break;
+        case SDL_EVENT_WINDOW_FOCUS_LOST:
+        {
+            printf("SDL_EVENT_WINDOW_FOCUS_LOST\n");
+        } break;
+        case SDL_EVENT_WINDOW_EXPOSED:
+        {
+            static bool isBlue = true;
+            SDL_RenderClear(renderer);
+
+            if (isBlue == true)
+            {
+                SDL_SetRenderDrawColor(renderer, 255, 111, 0, 255);
+                isBlue = false;
+            }
+            else
+            {
+                SDL_SetRenderDrawColor(renderer, 37, 150, 190, 255);
+                isBlue = true;
+            }
+
+            SDL_RenderPresent(renderer);
+            printf("Window Exposed\n");
+        } break;
+    // case SDL_EVENT_FOC
+        // TODO: Implement the following and align to day 2
+        //     switch(event->window.event)
+        //     {
+        //         case SDL_WINDOWEVENT_SIZE_CHANGED:
+        //         {
+        //             SDL_Window *Window = SDL_GetWindowFromID(Event->window.windowID);
+        //             SDL_Renderer *Renderer = SDL_GetRenderer(Window);
+        //             printf("SDL_WINDOWEVENT_SIZE_CHANGED (%d, %d)\n", Event->window.data1, Event->window.data2);
+        //             SDLResizeTexture(Renderer, Event->window.data1, Event->window.data2);
+        //         } break;
+
+        //         case SDL_WINDOWEVENT_FOCUS_GAINED:
+        //         {
+        //             printf("SDL_WINDOWEVENT_FOCUS_GAINED\n");
+        //         } break;
+
+        //         case SDL_WINDOWEVENT_EXPOSED:
+        //         {
+        //             SDL_Window *Window = SDL_GetWindowFromID(Event->window.windowID);
+        //             SDL_Renderer *Renderer = SDL_GetRenderer(Window);
+        //             SDLUpdateWindow(Window, Renderer);
+        //         } break;
+        //     }
+    }
+    // return(Running);
+}
+
+int main(void)
+{
+    // NOTE: Disable stdout buffering. In a macOS GUI app, stdout is often fully
+    // buffered and only flushes on exit, so printfs etc don’t appear until the
+    // program quits.
+    // TODO: Assign to some global debug variable
+    setvbuf(stdout, NULL, _IONBF, 0);  // make stdout unbuffered
+
+    // NOTE: Start SDL
+    SDL_Window *window;
+
+    SDL_Renderer *renderer = NULL;
+
+    // bool Running = true;
+    Running = true;
+
+    if (!SDL_Init(SDL_INIT_VIDEO))
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Couldn't initialize SDL: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+    window = SDL_CreateWindow(
+        "SDL Hello World",
+        1200,
+        700,
+        SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE);
+
+    renderer = SDL_CreateRenderer(window, NULL);
+
+    // NOTE: Check that the window was successfully created
+    if (window == NULL)
+    {
+        // In the case that the window could not be made...
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create window: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
+    if (renderer == NULL)
+    {
+        // NOTE: In case the renderer can not be created
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create renderer: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
+    while (Running) {
+        SDL_Event event;
+        SDL_PollEvent(&event);
+        HandleEvent(&event, renderer);
+
+        // NOTE: Do we even need this while loop (i.e. too many loops)
+        // while (SDL_PollEvent(&event)) {
+        //     HandleEvent(&event, renderer);
+        // }
+        // Do game logic, present a frame, etc.
+    }
+    // NOTE: Close and destroy the renderer
+    SDL_DestroyRenderer(renderer);
+    // Close and destroy the window
+    SDL_DestroyWindow(window);
+
+    // Clean up
+    SDL_Quit();
+    return(0);
+}
