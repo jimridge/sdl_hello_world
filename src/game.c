@@ -1,10 +1,13 @@
 #include "game.h"
 #include "init_sdl.h"
 #include "load_media.h"
+#include "player.h"
+// #include "text.h"
 
 void game_render_colour(struct Game *g);
 void game_events(struct Game *g);
-void game_draw(struct Game *g);
+void game_update(struct Game *g);
+void game_draw(const struct Game *g);
 
 
 bool game_new(struct Game **game)
@@ -26,6 +29,17 @@ bool game_new(struct Game **game)
     {
         return false;
     }
+
+    if (!text_new(&g->text, g->renderer))
+    {
+        return false;
+    }
+
+    if (!player_new(&g->player, g->renderer))
+    {
+        return false;
+    }
+
     g->is_running = true;
 
     srand((unsigned)time(NULL));
@@ -39,16 +53,14 @@ void game_free(struct Game **game)
     {
         struct Game *g = *game;
 
-        if (g->text_image)
+        if (g->player)
         {
-            SDL_DestroyTexture(g->text_image);
-            g->text_image = NULL;
+            player_free(&g->player);
         }
 
-        if (g->text_font)
+        if (g->text)
         {
-            TTF_CloseFont(g->text_font);
-            g->text_font = NULL;
+            text_free(&g->text);
         }
 
         if (g->background)
@@ -118,12 +130,20 @@ void game_events(struct Game *g)
     }
 }
 
-void game_draw(struct Game *g)
+void game_update(struct Game *g)
+{
+    text_update(g->text);
+    player_update(g->player);
+}
+
+
+void game_draw(const struct Game *g)
 {
     SDL_RenderClear(g->renderer);
 
     SDL_RenderTexture(g->renderer, g->background, NULL, NULL);
-    SDL_RenderTexture(g->renderer, g->text_image, NULL, &g->text_rect);
+    text_draw(g->text);
+    player_draw(g->player);
 
     SDL_RenderPresent(g->renderer);SDL_Delay(1000/FPS);
 }
@@ -133,6 +153,7 @@ void game_run(struct Game *g)
     while (g->is_running)
     {
         game_events(g);
+        game_update(g);
         game_draw(g);
 
         SDL_Delay(1000/FPS);

@@ -2,15 +2,16 @@
 #define GAME_H
 
 #include "main.h"
+#include "text.h"
+#include "player.h"
 
 
 struct Game {
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_Texture *background;
-    TTF_Font *text_font;
-    SDL_Texture *text_image;
-    SDL_FRect text_rect;
+    struct Text *text;
+    struct Player *player;
     SDL_Event event;
     bool is_running;
 };
