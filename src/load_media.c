@@ -1,5 +1,5 @@
 #include "load_media.h"
-#include "main.h"
+// #include "main.h"
 
 bool game_load_media(struct Game *g)
 {

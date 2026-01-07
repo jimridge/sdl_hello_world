@@ -4,7 +4,7 @@
 
 #include "main.h"
 
-
+SDL_Surface *bubble_surface(SDL_Surface *src_surface, int radius, SDL_Color outer_colour);
 SDL_Surface *bubble_create_text(
     const char *str,
     float size,
@@ -13,6 +13,6 @@ SDL_Surface *bubble_create_text(
     SDL_Color outer_colour
 );
 
-void blit_symmetric_points(SDL_Surface *src_surf, SDL_Surface *target_source, int radius, int x, int y);
+
 
 #endif
